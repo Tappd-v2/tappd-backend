@@ -9,6 +9,8 @@ checkout.post('/', async (c) => {
     try {
         const body = await c.req.json()
         const userId = 1; // TODO: Implement user authentication
+        const tableId = body.table.id;
+        const remarks = body.remarks;
 
         const transformedItems = body.items.map((item: { name: string; price: number; quantity: number }) => ({
             price_data: {
@@ -29,12 +31,21 @@ checkout.post('/', async (c) => {
                 success_url: `${process.env.CLIENT_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${process.env.CLIENT_URL}/cancel`,
                 metadata: {
-                    userId,
+                    userId: userId,
+                    tableId: tableId,
+                    remarks: remarks,
                 }
             })
-            return c.json({ id: session.id })
-        }
-        catch (err) {
+
+            const responseObject = {
+                id: session.id,
+                items: body.items,
+                table: body.table,
+                remarks: body.remarks,
+            }
+
+            return c.json(responseObject)
+        } catch (err) {
             console.error(err)
             return c.text('An error occurred while creating checkout, please try again later.', 500)
         }
