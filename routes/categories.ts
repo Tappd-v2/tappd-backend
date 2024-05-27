@@ -1,9 +1,9 @@
 import { Hono } from 'hono'
-import { query } from '../db/database.js'
+import { query } from '../db/database'
 
-const table = new Hono()
+const category = new Hono()
 
-table.get('/', async (c) => {
+category.get('/', async (c) => {
     try {
         const res = await query('SELECT * FROM categories')
         return c.json(res.rows)
@@ -13,4 +13,4 @@ table.get('/', async (c) => {
     }
 })
 
-export default table
+export default category

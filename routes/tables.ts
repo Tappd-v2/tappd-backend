@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { query } from '../db/database.js'
+import { query } from '../db/database'
 
 const table = new Hono()
 
