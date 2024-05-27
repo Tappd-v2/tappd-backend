@@ -8,8 +8,9 @@ const checkout = new Hono()
 checkout.post('/', async (c) => {
     try {
         const body = await c.req.json()
-        const userId = 1; // TODO: Implement user authentication
-        const tableId = body.table.id;
+        console.log(body)
+        const userId = body.userId;
+        const tableId = body.tableId;
         const remarks = body.remarks;
 
         const transformedItems = body.items.map((item: { name: string; price: number; quantity: number }) => ({

@@ -8,12 +8,13 @@ let orderDetails: any = {
     amount: null,
     receipt_url: null,
     userId: null,
-    created_at: null
+    created_at: null,
+    table_id: null,
+    remarks: null
 };
 
 order.post('/save', async (c) => {
     try {
-        console.log('Saving order...');
         const body = await c.req.json()
         const eventType = body.type
         const orderData = body.data.object;
@@ -26,6 +27,8 @@ order.post('/save', async (c) => {
         if (eventType === 'checkout.session.completed') {
             orderDetails.order_id = orderData.id;
             orderDetails.userId = orderData.metadata.userId;
+            orderDetails.table_id = orderData.metadata.tableId;
+            orderDetails.remarks = orderData.metadata.remarks ? orderData.metadata.remarks : '';
             orderDetails.created_at = new Date();
         }
 
@@ -34,13 +37,15 @@ order.post('/save', async (c) => {
         }
 
         try {
-            const res = await query('INSERT INTO orders (amount, receipt_url, user_id, created_at, order_id) VALUES ($1, $2, $3, $4, $5)', [orderDetails.amount, orderDetails.receipt_url, orderDetails.userId, orderDetails.created_at, orderDetails.order_id]);
+            const res = await query('INSERT INTO orders (amount, receipt_url, user_id, created_at, order_id, table_id, remarks) VALUES ($1, $2, $3, $4, $5, $6, $7)', [orderDetails.amount, orderDetails.receipt_url, orderDetails.userId, orderDetails.created_at, orderDetails.order_id, orderDetails.table_id, orderDetails.remarks]);
             orderDetails = {
                 order_id: null,
                 amount: null,
                 receipt_url: null,
                 userId: null,
-                created_at: null
+                created_at: null,
+                table_id: null,
+                remarks: null
             };
             return c.json(res.rows);
 
