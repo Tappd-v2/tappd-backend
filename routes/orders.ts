@@ -1,11 +1,10 @@
 import { Hono } from 'hono'
 import { query } from '../db/database'
-import Stripe from 'stripe'
 
 const order = new Hono()
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '')
 
 let orderDetails: any = {
+    order_id: null,
     amount: null,
     receipt_url: null,
     userId: null,
@@ -25,6 +24,7 @@ order.post('/save', async (c) => {
         }
 
         if (eventType === 'checkout.session.completed') {
+            orderDetails.order_id = orderData.id;
             orderDetails.userId = orderData.metadata.userId;
             orderDetails.created_at = new Date();
         }
@@ -34,8 +34,9 @@ order.post('/save', async (c) => {
         }
 
         try {
-            const res = await query('INSERT INTO orders (amount, receipt_url, user_id, created_at) VALUES ($1, $2, $3, $4)', [orderDetails.amount, orderDetails.receipt_url, orderDetails.userId, orderDetails.created_at]);
+            const res = await query('INSERT INTO orders (amount, receipt_url, user_id, created_at, order_id) VALUES ($1, $2, $3, $4, $5)', [orderDetails.amount, orderDetails.receipt_url, orderDetails.userId, orderDetails.created_at, orderDetails.order_id]);
             orderDetails = {
+                order_id: null,
                 amount: null,
                 receipt_url: null,
                 userId: null,
@@ -56,9 +57,8 @@ order.post('/save', async (c) => {
 order.get(':id', async (c) => {
     try {
         const id = c.req.param('id');
-        console.log(id);
-        const session = await stripe.checkout.sessions.retrieve(id);
-        return c.json(session);
+        const res = await query('SELECT * FROM orders JOIN users ON orders.user_id = users.id WHERE orders.order_id = $1', [id]);
+        return c.json(res.rows[0]);
     } catch (err) {
         console.error(err);
         return c.text('An error occurred while fetching the order, please try again later.', 500);
