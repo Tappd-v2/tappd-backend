@@ -8,7 +8,6 @@ const checkout = new Hono()
 checkout.post('/', async (c) => {
     try {
         const body = await c.req.json()
-        console.log(body)
         const userId = body.userId;
         const tableId = body.tableId;
         const remarks = body.remarks;

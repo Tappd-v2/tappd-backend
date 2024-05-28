@@ -6,7 +6,6 @@ const user = new Hono()
 user.post('/login', async (c) => {
     try {
         const body = await c.req.json()
-        console.log(body)
         const res = await query('SELECT * FROM users WHERE email = $1 AND password = $2', [body.email, body.password])
         if (res.rows.length === 0) {
             return c.text('Invalid email or password.', 401)
