@@ -14,6 +14,6 @@ export const orders = pgTable('orders', {
 },
     (orders) => {
         return {
-            userIdIndex: index('user_id_index').on(orders.userId),
+            userIdIndex: index('order_user_id_index').on(orders.userId),
         };
     });
