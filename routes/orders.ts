@@ -1,13 +1,31 @@
 import { Hono } from 'hono'
-import { query } from '../db/database'
+import { db } from '../db'
+import { orders as orderTable } from '../db/schema/orders'
+import { users as userTable } from '../db/schema/users'
 import { OrderDetails } from '../models/orderDetails';
+import { z } from 'zod'
+import { eq } from 'drizzle-orm';
 
 const order = new Hono()
+
+const orderSchema = z.object({
+    id: z.number(),
+    userId: z.number(),
+    paymentId: z.string(),
+    tableId: z.number(),
+    remarks: z.string(),
+    state: z.string(),
+    totalPrice: z.number(),
+    type: z.string(),
+    createdAt: z.string(),
+    receiptUrl: z.string()
+});
 
 let orderDetails = new OrderDetails();
 
 order.post('/save', async (c) => {
     try {
+        console.log('Received order data:');
         const body = await c.req.json();
         const eventType = body.type;
         const orderData = body.data.object;
@@ -25,22 +43,28 @@ order.post('/save', async (c) => {
             orderDetails.createdAt = new Date();
         }
 
+        console.log('Order details:', orderDetails);
+
         if (!orderDetails.isComplete()) {
             return c.text('Got partial order data.', 200);
         }
 
+        console.log('Saving order:', orderDetails);
+
         try {
-            const res = await query('INSERT INTO orders (total_price, receipt_url, user_id, created_at, payment_id, table_id, remarks) VALUES ($1, $2, $3, $4, $5, $6, $7)', [
-                orderDetails.totalPrice,
-                orderDetails.receiptUrl,
-                orderDetails.userId,
-                orderDetails.createdAt,
-                orderDetails.paymentId,
-                orderDetails.tableId,
-                orderDetails.remarks
-            ]);
+            const result = await db.insert(orderTable).values({
+                userId: orderDetails.userId,
+                paymentId: orderDetails.paymentId,
+                tableId: orderDetails.tableId,
+                remarks: orderDetails.remarks,
+                totalPrice: orderDetails.totalPrice,
+                type: 'card', // TODO: Add support for other payment types
+                createdAt: orderDetails.createdAt,
+                receiptUrl: orderDetails.receiptUrl
+            }).returning();
+
             orderDetails.reset();
-            return c.json(res.rows);
+            return c.json(result);
         } catch (err) {
             console.error(err);
             return c.text('An error occurred while saving the order, please try again later.', 500);
@@ -54,8 +78,8 @@ order.post('/save', async (c) => {
 order.get('/:id', async (c) => {
     try {
         const id = c.req.param('id');
-        const res = await query('SELECT * FROM orders JOIN users ON orders.user_id = users.id WHERE orders.payment_id = $1', [id]);
-        return c.json(res.rows[0]);
+        const order = (await db.select().from(orderTable).leftJoin(userTable, eq(orderTable.userId, userTable.id)).where(eq(orderTable.paymentId, id)));
+        return c.json(order[0]);
     } catch (err) {
         console.error(err);
         return c.text('An error occurred while fetching the order, please try again later.', 500);

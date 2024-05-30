@@ -2,7 +2,7 @@ export class OrderDetails {
     paymentId: string | null = null;
     totalPrice: number | null = null;
     receiptUrl: string | null = null;
-    userId: string | null = null;
+    userId: Number | null = null;
     createdAt: Date | null = null;
     tableId: string | null = null;
     remarks: string | null = null;
