@@ -12,6 +12,7 @@ checkout.post('/', async (c) => {
         const userId = body.userId;
         const tableId = body.tableId;
         const remarks = body.remarks;
+        const location = body.location;
 
         const transformedItems = body.items.map((item: { name: string; price: number; quantity: number }) => ({
             price_data: {
@@ -29,12 +30,13 @@ checkout.post('/', async (c) => {
                 payment_method_types: ['card', 'bancontact'],
                 line_items: transformedItems,
                 mode: 'payment',
-                success_url: `${process.env.CLIENT_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-                cancel_url: `${process.env.CLIENT_URL}/cancel`,
+                success_url: `${process.env.CLIENT_URL}/venues/${location}/success?session_id={CHECKOUT_SESSION_ID}`,
+                cancel_url: `${process.env.CLIENT_URL}/venues/${location}/cancel`,
                 metadata: {
                     userId: userId,
                     tableId: tableId,
                     remarks: remarks,
+                    location: location,
                 }
             })
 
@@ -43,6 +45,7 @@ checkout.post('/', async (c) => {
                 items: body.items,
                 table: body.table,
                 remarks: body.remarks,
+                location: body.location,
             }
 
             return c.json(responseObject)

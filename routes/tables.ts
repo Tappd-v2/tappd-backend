@@ -1,19 +1,14 @@
 import { Hono } from 'hono'
 import { db } from '../db'
-import { z } from 'zod'
 import { tables as tableTable } from '../db/schema/tables'
+import { eq } from 'drizzle-orm'
 
 const table = new Hono()
 
-const tableSchema = z.object({
-    id: z.number(),
-    name: z.string().max(255),
-    locationId: z.number()
-})
-
 table.get('/', async (c) => {
     try {
-        const tables = await db.select().from(tableTable).orderBy(tableTable.name)
+        const locationId = parseInt(c.req.param('location') || '0');
+        const tables = await db.select().from(tableTable).where(eq(tableTable.locationId, locationId));
         return c.json(tables)
     } catch (err) {
         console.error(err)

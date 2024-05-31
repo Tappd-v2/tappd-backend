@@ -25,7 +25,6 @@ let orderDetails = new OrderDetails();
 
 order.post('/save', async (c) => {
     try {
-        console.log('Received order data:');
         const body = await c.req.json();
         const eventType = body.type;
         const orderData = body.data.object;
@@ -43,13 +42,9 @@ order.post('/save', async (c) => {
             orderDetails.createdAt = new Date();
         }
 
-        console.log('Order details:', orderDetails);
-
         if (!orderDetails.isComplete()) {
             return c.text('Got partial order data.', 200);
         }
-
-        console.log('Saving order:', orderDetails);
 
         try {
             const result = await db.insert(orderTable).values({
