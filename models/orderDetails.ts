@@ -1,4 +1,5 @@
 export class OrderDetails {
+    sessionId: string | null = null;
     paymentId: string | null = null;
     totalPrice: number | null = null;
     receiptUrl: string | null = null;

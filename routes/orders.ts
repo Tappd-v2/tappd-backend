@@ -3,23 +3,9 @@ import { db } from '../db'
 import { orders as orderTable } from '../db/schema/orders'
 import { users as userTable } from '../db/schema/users'
 import { OrderDetails } from '../models/orderDetails';
-import { z } from 'zod'
 import { eq } from 'drizzle-orm';
 
 const order = new Hono()
-
-const orderSchema = z.object({
-    id: z.number(),
-    userId: z.number(),
-    paymentId: z.string(),
-    tableId: z.number(),
-    remarks: z.string(),
-    state: z.string(),
-    totalPrice: z.number(),
-    type: z.string(),
-    createdAt: z.string(),
-    receiptUrl: z.string()
-});
 
 let orderDetails = new OrderDetails();
 
@@ -30,12 +16,13 @@ order.post('/save', async (c) => {
         const orderData = body.data.object;
 
         if (eventType === 'charge.succeeded') {
+            orderDetails.paymentId = orderData.id;
             orderDetails.totalPrice = orderData.amount / 100; // Stripe sends in cents, but we want to store the amount in euros
             orderDetails.receiptUrl = orderData.receipt_url;
         }
 
         if (eventType === 'checkout.session.completed') {
-            orderDetails.paymentId = orderData.id;
+            orderDetails.sessionId = orderData.id;
             orderDetails.userId = orderData.metadata.userId;
             orderDetails.tableId = orderData.metadata.tableId;
             orderDetails.remarks = orderData.metadata.remarks || '';
@@ -55,7 +42,8 @@ order.post('/save', async (c) => {
                 totalPrice: orderDetails.totalPrice,
                 type: 'card', // TODO: Add support for other payment types
                 createdAt: orderDetails.createdAt,
-                receiptUrl: orderDetails.receiptUrl
+                receiptUrl: orderDetails.receiptUrl,
+                sessionId: orderDetails.sessionId
             }).returning();
 
             orderDetails.reset();
@@ -73,7 +61,9 @@ order.post('/save', async (c) => {
 order.get('/:id', async (c) => {
     try {
         const id = c.req.param('id');
-        const order = (await db.select().from(orderTable).leftJoin(userTable, eq(orderTable.userId, userTable.id)).where(eq(orderTable.paymentId, id)));
+        console.log(id);
+        const order = (await db.select().from(orderTable).leftJoin(userTable, eq(orderTable.userId, userTable.id)).where(eq(orderTable.sessionId, id)));
+        console.log(order);
         return c.json(order[0]);
     } catch (err) {
         console.error(err);
