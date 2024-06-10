@@ -19,7 +19,7 @@ table.get('/', async (c) => {
 })
 
 
-table.post('/:id/call', async (c) => {
+table.post('/call', async (c) => {
     try {
         const body = await c.req.json()
         const tableId = parseInt(body.tableId);
@@ -27,13 +27,10 @@ table.post('/:id/call', async (c) => {
         if (table.length === 0) {
             return c.text('Table not found', 404)
         }
-        const tableData = table[0];
-
         const callRequest = await db.select().from(callRequests).where(eq(callRequests.tableId, tableId));
-        if (callRequest[0].state === CallRequestState.Pending) {
-            return c.json({ message: 'Staff has already been called' })
+        if (callRequest[0]?.state === CallRequestState.Pending) {
+            return c.json({ message: 'Staff has already been called', callRequest: callRequest[0]});
         }
-
         const result = await db.insert(callRequests).values({
             tableId: tableId,
             state: CallRequestState.Pending
@@ -42,7 +39,7 @@ table.post('/:id/call', async (c) => {
         if (result.length === 0) {
             return c.text('An error occurred while calling for staff, please try again later.', 500)
         } else {
-            return c.json({ message: 'Staff has been called', table: tableData });
+            return c.json({ message: 'Staff has been called'});
         }
     } catch (err) {
         console.error(err)
