@@ -3,6 +3,8 @@
     "dev": "bun run --hot src/index.ts"
   },
   "dependencies": {
+    "@kinde-oss/kinde-nodejs-sdk": "^1.2.3",
+    "@kinde-oss/kinde-typescript-sdk": "^2.9.1",
     "@types/pg": "^8.11.6",
     "drizzle-orm": "^0.30.10",
     "hono": "^4.3.9",
