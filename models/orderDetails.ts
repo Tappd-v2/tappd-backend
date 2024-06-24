@@ -3,7 +3,7 @@ export class OrderDetails {
     paymentId: string | null = null;
     totalPrice: number | null = null;
     receiptUrl: string | null = null;
-    userId: Number | null = null;
+    userId: string | null = null;
     createdAt: Date | null = null;
     tableId: string | null = null;
     remarks: string | null = null;
@@ -13,7 +13,7 @@ export class OrderDetails {
     }
 
     isComplete(): boolean {
-        return !Object.values(this).some(value => value === null || value === undefined);
+        return !Object.values(this).some(value => value === null || value === undefined) && this.userId !== null;
     }
 
     reset(): void {

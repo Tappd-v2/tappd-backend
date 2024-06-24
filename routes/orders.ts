@@ -1,7 +1,6 @@
 import { Hono } from 'hono'
 import { db } from '../db'
 import { orders as orderTable } from '../db/schema/orders'
-import { users as userTable } from '../db/schema/users'
 import { OrderDetails } from '../models/orderDetails';
 import { eq } from 'drizzle-orm';
 
@@ -59,16 +58,15 @@ order.post('/save', async (c) => {
 });
 
 order.get('/:id', async (c) => {
-    try {
-        const id = c.req.param('id');
-        console.log(id);
-        const order = (await db.select().from(orderTable).leftJoin(userTable, eq(orderTable.userId, userTable.id)).where(eq(orderTable.sessionId, id)));
-        console.log(order);
-        return c.json(order[0]);
-    } catch (err) {
-        console.error(err);
-        return c.text('An error occurred while fetching the order, please try again later.', 500);
-    }
+    const orderId = c.req.param('id');
+    const result = await db.select().from(orderTable).where(eq(orderTable.sessionId, orderId));
+    return c.json(result[0]);
+});
+
+order.get('/', async (c) => {
+    const userId = c.req.query('userId');
+    const result = await db.select().from(orderTable).where(eq(orderTable.userId, userId));
+    return c.json(result);
 });
 
 export default order;

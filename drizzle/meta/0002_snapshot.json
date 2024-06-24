@@ -1,6 +1,6 @@
 {
-  "id": "ab5c1ca7-cc09-4d11-8382-7be0c3eaf85a",
-  "prevId": "fc6c9771-31d4-4ea9-9070-fde5d98c47d1",
+  "id": "a78cdaa3-1094-4561-ba06-1cde53e842b3",
+  "prevId": "0d48fcd4-b8e3-43db-975b-f3fb89a4f137",
   "version": "6",
   "dialect": "postgresql",
   "tables": {
@@ -20,11 +20,12 @@
           "primaryKey": false,
           "notNull": true
         },
-        "state_id": {
-          "name": "state_id",
-          "type": "integer",
+        "state": {
+          "name": "state",
+          "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'new'"
         }
       },
       "indexes": {
@@ -32,13 +33,6 @@
           "name": "table_id_index",
           "columns": [
             "table_id"
-          ],
-          "isUnique": false
-        },
-        "state_id_index": {
-          "name": "state_id_index",
-          "columns": [
-            "state_id"
           ],
           "isUnique": false
         }
@@ -101,7 +95,7 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "integer",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": true
         }
@@ -111,13 +105,6 @@
           "name": "favorite_item_id_index",
           "columns": [
             "item_id"
-          ],
-          "isUnique": false
-        },
-        "favorite_user_id_index": {
-          "name": "favorite_user_id_index",
-          "columns": [
-            "user_id"
           ],
           "isUnique": false
         }
@@ -284,7 +271,13 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "integer",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "session_id": {
+          "name": "session_id",
+          "type": "varchar(256)",
           "primaryKey": false,
           "notNull": true
         },
@@ -300,12 +293,12 @@
           "primaryKey": false,
           "notNull": true
         },
-        "state_id": {
-          "name": "state_id",
-          "type": "integer",
+        "state": {
+          "name": "state",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": true,
-          "default": 1
+          "default": "'new'"
         },
         "price": {
           "name": "price",
@@ -332,48 +325,18 @@
           "notNull": true
         }
       },
-      "indexes": {
-        "order_user_id_index": {
-          "name": "order_user_id_index",
-          "columns": [
-            "user_id"
-          ],
-          "isUnique": false
-        }
-      },
+      "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.states": {
-      "name": "states",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "state_name_index": {
-          "name": "state_name_index",
+      "uniqueConstraints": {
+        "orders_payment_id_unique": {
+          "name": "orders_payment_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
-            "name"
-          ],
-          "isUnique": false
+            "payment_id"
+          ]
         }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      }
     },
     "public.tables": {
       "name": "tables",
@@ -403,48 +366,6 @@
           "name": "table_location_id_index",
           "columns": [
             "location_id"
-          ],
-          "isUnique": false
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.users": {
-      "name": "users",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "username": {
-          "name": "username",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "password": {
-          "name": "password",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "email": {
-          "name": "email",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "email_id_index": {
-          "name": "email_id_index",
-          "columns": [
-            "email"
           ],
           "isUnique": false
         }
