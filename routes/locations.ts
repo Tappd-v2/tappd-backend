@@ -17,7 +17,7 @@ location.get('/', async (c) => {
 
 location.get('/:id', async (c) => {
     try {
-        const locationId = parseInt(c.req.param('id'));
+        const locationId = c.req.param('id');
         const location = await db.select().from(locationTable).where(eq(locationTable.id, locationId));
         if (location.length === 0) {
             return c.json('Location not found', 404)

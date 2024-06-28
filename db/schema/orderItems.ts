@@ -1,7 +1,7 @@
 import { pgTable, serial, numeric, integer, index } from 'drizzle-orm/pg-core';
 
 
-export const items = pgTable('order_items', {
+export const orderItems = pgTable('order_items', {
     id: serial('id').primaryKey(),
     orderId: integer('order_id').notNull(),
     itemId: integer('item_id').notNull(),

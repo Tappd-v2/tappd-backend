@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1719238671963,
-      "tag": "0000_flashy_power_pack",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1719238853120,
-      "tag": "0001_mysterious_carnage",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1719239381357,
-      "tag": "0002_grey_living_lightning",
+      "when": 1719571138806,
+      "tag": "0000_lazy_nehzno",
       "breakpoints": true
     }
   ]

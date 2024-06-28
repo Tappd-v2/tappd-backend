@@ -1,8 +1,8 @@
-import { pgTable, serial, varchar, index } from 'drizzle-orm/pg-core';
+import { pgTable, varchar, index } from 'drizzle-orm/pg-core';
 
 
 export const locations = pgTable('locations', {
-    id: serial('id').primaryKey(),
+    id: varchar('id').primaryKey(), // Kinde org code
     name: varchar('name', { length: 256 }).notNull(),
     description: varchar('description', { length: 256 }).notNull(),
 },

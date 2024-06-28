@@ -7,13 +7,14 @@ export class OrderDetails {
     createdAt: Date | null = null;
     tableId: string | null = null;
     remarks: string | null = null;
+    orderItems = []; 
 
     constructor(init?: Partial<OrderDetails>) {
         Object.assign(this, init);
     }
 
     isComplete(): boolean {
-        return !Object.values(this).some(value => value === null || value === undefined) && this.userId !== null;
+        return !Object.values(this).some(value => value === null || value === undefined) && this.userId !== null && this.orderItems.length > 0;
     }
 
     reset(): void {
@@ -24,5 +25,6 @@ export class OrderDetails {
         this.createdAt = null;
         this.tableId = null;
         this.remarks = null;
+        this.orderItems = [];
     }
 }

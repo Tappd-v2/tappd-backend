@@ -1,5 +1,5 @@
 {
-  "id": "0c132c9a-e795-49ab-8d7e-30b91749249d",
+  "id": "c365b401-262d-4732-a9dc-01fcef348981",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "6",
   "dialect": "postgresql",
@@ -59,7 +59,7 @@
         },
         "location_id": {
           "name": "location_id",
-          "type": "integer",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": true
         }
@@ -95,7 +95,7 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "integer",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": true
         }
@@ -105,13 +105,6 @@
           "name": "favorite_item_id_index",
           "columns": [
             "item_id"
-          ],
-          "isUnique": false
-        },
-        "favorite_user_id_index": {
-          "name": "favorite_user_id_index",
-          "columns": [
-            "user_id"
           ],
           "isUnique": false
         }
@@ -187,7 +180,7 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "varchar",
           "primaryKey": true,
           "notNull": true
         },
@@ -278,7 +271,7 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "integer",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": false
         },
@@ -335,7 +328,15 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {
+        "orders_payment_id_unique": {
+          "name": "orders_payment_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "payment_id"
+          ]
+        }
+      }
     },
     "public.tables": {
       "name": "tables",
@@ -355,7 +356,7 @@
         },
         "location_id": {
           "name": "location_id",
-          "type": "integer",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": true
         }
