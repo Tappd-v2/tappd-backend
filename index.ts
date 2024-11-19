@@ -11,7 +11,14 @@ import authRouter from './routes/auth'
 
 const app = new Hono()
 
-app.use(cors())
+
+// CORS configuration
+app.use(
+  cors({
+    origin: 'https://tappd-demo.lukasolivier.be', // Specify your front-end URL
+    credentials: true, // Allow credentials
+  })
+)
 
 app.route('/locations', locationsRouter)
 app.route('/:location/tables', tableRouter)
