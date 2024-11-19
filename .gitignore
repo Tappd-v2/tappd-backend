@@ -3,3 +3,5 @@ bun.lockb
 package-lock.json
 .env
 drizzle
+.bun.lockb
+meta
