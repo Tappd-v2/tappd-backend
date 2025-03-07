@@ -13,10 +13,20 @@ const app = new Hono()
 
 
 // CORS configuration
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://tappd-demo.lukasolivier.be' // Replace with your actual production domain
+]
+
 app.use(
   cors({
-    origin: 'https://tappd-demo.lukasolivier.be', // Specify your front-end URL
-    credentials: true, // Allow credentials
+    origin: (origin) => {
+      if (allowedOrigins.includes(origin)) {
+        return origin
+      }
+      return null
+    },
+    credentials: true, 
   })
 )
 

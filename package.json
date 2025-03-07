@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "bun run --hot src/index.ts"
+    "dev": "bun run --hot index.ts"
   },
   "dependencies": {
     "@kinde-oss/kinde-nodejs-sdk": "^1.2.3",
