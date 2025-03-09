@@ -99,24 +99,44 @@ order.get('/:id', async (c) => {
 });
 
 order.get('/', async (c) => {
-    console.log(c.req.query('userId'));
-    const result = await db.select(
-       {
+    const userId = c.req.query('userId');
+    const baseQuery = db.select({
         id: orderTable.id,
         table: orderTable.tableId,
         state: orderTable.state,
         totalPrice: orderTable.totalPrice,
         createdAt: orderTable.createdAt,
-        items: ItemsTable.name,
-        amount: orderItemsTable.amount
-       }
-    ).from(orderTable)
-    .leftJoin(orderItemsTable, eq(orderItemsTable.orderId, orderTable.id))
-    .leftJoin(ItemsTable, eq(ItemsTable.id, orderItemsTable.itemId))
-    .orderBy(orderTable.createdAt);
+        receiptUrl: orderTable.receiptUrl,
+        remarks: orderTable.remarks,
+    })
+    .from(orderTable);
 
-    console.log(result);
-    return c.json(result);
+    if (userId) {
+        baseQuery.where(eq(orderTable.userId, userId));
+    }
+
+    const orders = await baseQuery.orderBy(orderTable.createdAt);
+
+    // Fetch items for each order
+    const ordersWithItems = await Promise.all(
+        orders.map(async (order) => {
+            const items = await db.select({
+                name: ItemsTable.name,
+                amount: orderItemsTable.amount,
+                price: ItemsTable.price,
+            })
+            .from(orderItemsTable)
+            .leftJoin(ItemsTable, eq(ItemsTable.id, orderItemsTable.itemId))
+            .where(eq(orderItemsTable.orderId, order.id));
+
+            return {
+                ...order,
+                items
+            };
+        })
+    );
+
+    return c.json(ordersWithItems);
 });
 
 export default order;
