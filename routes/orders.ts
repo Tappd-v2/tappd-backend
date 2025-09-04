@@ -22,8 +22,6 @@ order.post('/save', async (c) => {
             orderDetails.receiptUrl = orderData.receipt_url;
         }
 
-        console.log(orderData);
-
         if (eventType === 'checkout.session.completed') {
             orderDetails.sessionId = orderData.id;
             orderDetails.userId = orderData.metadata.userId;
@@ -40,7 +38,6 @@ order.post('/save', async (c) => {
         let result; 
         try{
             result = await saveOrder(orderDetails);
-            console.log(result[0]);
             await saveItems(orderDetails.orderItems, result[0].id);
 
         } finally {
@@ -63,7 +60,6 @@ async function saveItems(orderItems: any[], orderId: number) {
             amount: item.quantity.toString(), // Convert the amount to a string
             orderId: orderId,
         }));
-        console.log(items);
        await db.insert(orderItemsTable).values(items).returning();
     } catch (err) {
         console.error(err);
@@ -94,7 +90,6 @@ order.get('/:id', async (c) => {
     const orderId = c.req.param('id');
     const result = await db.select().from(orderTable)
     .where(eq(orderTable.sessionId, orderId));
-    console.log(result);
     return c.json(result[0]);
 });
 
