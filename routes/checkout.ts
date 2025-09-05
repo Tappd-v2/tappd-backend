@@ -31,8 +31,8 @@ checkout.post('/', async (c) => {
             payment_method_types: ['card', 'bancontact'],
             line_items: transformedItems,
             mode: 'payment',
-            success_url: `${process.env.CLIENT_URL}/venues/${locationId}/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${process.env.CLIENT_URL}/venues/${locationId}/cancel`,
+            success_url: `${process.env.KINDE_SITE_URL}/venues/${locationId}/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${process.env.KINDE_SITE_URL}/venues/${locationId}/cancel`,
             metadata: {
                 userId: userId,
                 tableId: tableId,
