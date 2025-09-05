@@ -21,12 +21,12 @@ order.post('/save', async (c) => {
         const eventType = body.type;
         const orderData = body.data.object;
 
-        console.log('Orderdata', orderData);
-
         if (eventType === 'charge.succeeded') {
             orderDetails.paymentId = orderData.id;
             orderDetails.totalPrice = orderData.amount / 100; // Stripe sends in cents, but we want to store the amount in euros
             orderDetails.receiptUrl = orderData.receipt_url;
+            // Try to extract customer name from billing details on the charge
+            orderDetails.customerName = orderData.billing_details?.name || orderDetails.customerName;
         }
 
         if (eventType === 'checkout.session.completed') {
@@ -36,6 +36,8 @@ order.post('/save', async (c) => {
             orderDetails.locationId = orderData.metadata.locationId;
             orderDetails.orderItems = JSON.parse(orderData.metadata.items || '[]');
             orderDetails.remarks = orderData.metadata.remarks || '';
+            // Checkout session may include customer_details with name
+            orderDetails.customerName = orderData.customer_details?.name || orderDetails.customerName || null;
             orderDetails.createdAt = new Date();
         }
 
@@ -83,6 +85,7 @@ async function saveOrder(orderDetails: OrderDetails) {
             tableId: orderDetails.tableId,
             locationId: orderDetails.locationId,
             remarks: orderDetails.remarks,
+            customerName: orderDetails.customerName,
             totalPrice: orderDetails.totalPrice,
             type: 'card', // TODO: Add support for other payment types
             createdAt: orderDetails.createdAt,
@@ -102,6 +105,7 @@ order.get('/:id', async (c) => {
         userId: orderTable.userId,
         sessionId: orderTable.sessionId,
         paymentId: orderTable.paymentId,
+        customerName: orderTable.customerName,
         tableId: orderTable.tableId,
         tableName: tablesTable.name,
         locationId: orderTable.locationId,
@@ -136,6 +140,7 @@ order.get('/', async (c) => {
     const baseQuery = db.select({
         id: orderTable.id,
         tableId: orderTable.tableId,
+        customerName: orderTable.customerName,
         tableName: tablesTable.name,
         state: orderTable.state,
         totalPrice: orderTable.totalPrice,

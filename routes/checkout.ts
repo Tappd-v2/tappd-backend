@@ -15,8 +15,6 @@ checkout.post('/', async (c) => {
         const locationId = body.locationId;
         const items = body.items;
 
-        console.log('body', body)
-
         const transformedItems = body.items.map((item: { name: string; price: number; quantity: number }) => ({
             price_data: {
                 currency: 'eur',

@@ -3,6 +3,7 @@ export class OrderDetails {
     paymentId: string | null = null;
     totalPrice: number | null = null;
     receiptUrl: string | null = null;
+    customerName: string | null = null;
     userId: string | null = null;
     createdAt: Date | null = null;
     tableId: string | null = null;
@@ -15,13 +16,18 @@ export class OrderDetails {
     }
 
     isComplete(): boolean {
-        return !Object.values(this).some(value => value === null || value === undefined) && this.userId !== null && this.orderItems.length > 0;
+        // Exclude optional fields (like customerName) from the generic null-check so optional PII doesn't block completion
+        const values = Object.entries(this)
+            .filter(([k]) => k !== 'customerName')
+            .map(([, v]) => v);
+        return !values.some(value => value === null || value === undefined) && this.userId !== null && this.orderItems.length > 0;
     }
 
     reset(): void {
         this.paymentId = null;
         this.totalPrice = null;
         this.receiptUrl = null;
+    this.customerName = null;
         this.userId = null;
         this.createdAt = null;
         this.tableId = null;

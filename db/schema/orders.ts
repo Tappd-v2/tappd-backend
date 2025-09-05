@@ -13,5 +13,6 @@ export const orders = pgTable('orders', {
     totalPrice: numeric('price', { precision: 10, scale: 2 }).notNull(),
     remarks: varchar('remarks', { length: 256 }),
     receiptUrl: varchar('receipt_url').notNull(),
+    customerName: varchar('customer_name', { length: 256 }),
     createdAt: timestamp('created_at').notNull(),
 });
