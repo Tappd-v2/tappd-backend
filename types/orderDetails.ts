@@ -6,6 +6,7 @@ export class OrderDetails {
     userId: string | null = null;
     createdAt: Date | null = null;
     tableId: string | null = null;
+    locationId: string | null = null;
     remarks: string | null = null;
     orderItems = []; 
 

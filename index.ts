@@ -34,7 +34,7 @@ app.route('/locations', locationsRouter)
 app.route('/:location/tables', tableRouter)
 app.route('/:location/categories', categoryRouter)
 app.route('items', itemRouter)
-app.route('orders', orderRouter)
+app.route('/orders', orderRouter)
 app.route('/:location/checkout', checkoutRouter)
 app.route('/', authRouter)
 
