@@ -58,34 +58,6 @@ app.route('/:location/checkout', checkoutRouter)
 app.route('/locations', locationsRouter)
 app.route('/', authRouter)
 
-// Mock endpoints to trigger websocket notifications for testing
-app.post('/mock/notify', async (c) => {
-  try {
-    const body = await c.req.json().catch(() => ({}));
-    const url = new URL(c.req.url);
-    const location = body.location || url.searchParams.get('location');
-    if (!location) return c.json({ ok: false, error: 'missing location' }, 400);
-    const payload = body.payload ?? { type: 'mock', time: new Date().toISOString() };
-    notifyLocationClients(location, payload);
-    return c.json({ ok: true, notified: location });
-  } catch (e) {
-    return c.json({ ok: false, error: String(e) }, 500);
-  }
-});
-
-app.get('/mock/notify', async (c) => {
-  try {
-    const url = new URL(c.req.url);
-    const location = url.searchParams.get('location');
-    if (!location) return c.json({ ok: false, error: 'missing location' }, 400);
-    const payload = { type: 'mock', time: new Date().toISOString(), via: 'GET' };
-    notifyLocationClients(location, payload);
-    return c.json({ ok: true, notified: location });
-  } catch (e) {
-    return c.json({ ok: false, error: String(e) }, 500);
-  }
-});
-
 const topic = 'orders';
 
 export default {
