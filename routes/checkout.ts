@@ -11,6 +11,7 @@ checkout.post('/', async (c) => {
         const body = await c.req.json()
         const userId = body.userId;
         const tableId = body.tableId;
+        const tableName = body.tableName;
         const remarks = body.remarks;
         const locationId = body.locationId;
         const items = body.items;
@@ -36,6 +37,7 @@ checkout.post('/', async (c) => {
             metadata: {
                 userId: userId,
                 tableId: tableId,
+                tableName: tableName,
                 remarks: remarks,
                 locationId: locationId,
                 items: JSON.stringify(items),
@@ -45,7 +47,10 @@ checkout.post('/', async (c) => {
             const responseObject = {
                 id: session.id,
                 items: body.items,
-                table: body.table,
+                table: {
+                    id: tableId,
+                    name: tableName,
+                },
                 remarks: body.remarks,
                 locationId: body.locationId,
                 userId: body.userId,

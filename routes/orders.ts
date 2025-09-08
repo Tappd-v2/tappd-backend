@@ -10,6 +10,8 @@ import { eq } from 'drizzle-orm';
 import { OrderState } from '../types/orderState';
 import { getUserWithPermissions } from '../kinde';
 import { and } from 'drizzle-orm';
+import { publish } from '../wsManager';
+import { notifyLocationClients } from '../index';
 
 const order = new Hono()
 
@@ -32,7 +34,10 @@ order.post('/save', async (c) => {
         if (eventType === 'checkout.session.completed') {
             orderDetails.sessionId = orderData.id;
             orderDetails.userId = orderData.metadata.userId;
-            orderDetails.tableId = orderData.metadata.tableId;
+            orderDetails.table = {
+                id: orderData.metadata.tableId || null,
+                name: orderData.metadata.tableName || null,
+            };
             orderDetails.locationId = orderData.metadata.locationId;
             orderDetails.orderItems = JSON.parse(orderData.metadata.items || '[]');
             orderDetails.remarks = orderData.metadata.remarks || '';
@@ -49,6 +54,25 @@ order.post('/save', async (c) => {
         try{
             result = await saveOrder(orderDetails);
             await saveItems(orderDetails.orderItems, result[0].id);
+
+            // publish order created event to websockets (both global and location-specific)
+            const created = result[0];
+
+            // build order object with table info for websocket messages
+            const createdTable = await getTableObject(created.tableId);
+            const createdItems = await getOrderItems(created.id);
+            const createdWithTable = { ...created, table: createdTable, items: createdItems };
+
+            const topicLocation = `orders:${created.locationId}`;
+            publish(topicLocation, { action: 'created', order: createdWithTable });
+
+            // notify websocket clients in the same location about the new order
+            try {
+              const locationId = created.locationId || created.location || created.location_id;
+              if (locationId) {
+                notifyLocationClients(locationId, { type: 'order_created', order: createdWithTable });
+              }
+            } catch (e) { /* ignore notification errors */ }
 
         } finally {
             orderDetails.reset();
@@ -82,7 +106,7 @@ async function saveOrder(orderDetails: OrderDetails) {
         return await db.insert(orderTable).values({
             userId: orderDetails.userId,
             paymentId: orderDetails.paymentId,
-            tableId: orderDetails.tableId,
+            tableId: orderDetails.table?.id || null,
             locationId: orderDetails.locationId,
             remarks: orderDetails.remarks,
             customerName: orderDetails.customerName,
@@ -107,7 +131,6 @@ order.get('/:id', async (c) => {
         paymentId: orderTable.paymentId,
         customerName: orderTable.customerName,
         tableId: orderTable.tableId,
-        tableName: tablesTable.name,
         locationId: orderTable.locationId,
         state: orderTable.state,
         totalPrice: orderTable.totalPrice,
@@ -141,7 +164,6 @@ order.get('/', async (c) => {
         id: orderTable.id,
         tableId: orderTable.tableId,
         customerName: orderTable.customerName,
-        tableName: tablesTable.name,
         state: orderTable.state,
         totalPrice: orderTable.totalPrice,
         createdAt: orderTable.createdAt,
@@ -231,6 +253,16 @@ order.patch('/:orderId/state', getUserWithPermissions, async (c) => {
             return c.text('Order not found', 404);
         }
 
+        // publish websocket update for state change
+        const updated = result[0];
+        const updatedTable = await getTableObject(updated.tableId);
+        const updatedItems = await getOrderItems(updated.id);
+        const updatedWithTable = { ...updated, table: updatedTable, items: updatedItems };
+        const topicGlobal2 = 'orders';
+        const topicLocation2 = `orders:${updated.locationId}`;
+        publish(topicGlobal2, { action: 'updated', order: updatedWithTable });
+        publish(topicLocation2, { action: 'updated', order: updatedWithTable });
+
         return c.json(result[0]);
     } catch (err) {
         console.error(err);
@@ -239,6 +271,41 @@ order.patch('/:orderId/state', getUserWithPermissions, async (c) => {
 });
 
 
+// helper to fetch table object by id
+async function getTableObject(tableId: number | string | null | undefined) {
+    if (!tableId) return null;
+    try {
+        const rows = await db.select({ id: tablesTable.id, name: tablesTable.name })
+            .from(tablesTable)
+            .where(eq(tablesTable.id, Number(tableId)));
+        if (rows && rows.length) {
+            return { id: rows[0].id, name: rows[0].name };
+        }
+        return { id: Number(tableId), name: null };
+    } catch (e) {
+        console.error('Failed to fetch table info for websocket message', e);
+        return { id: Number(tableId), name: null };
+    }
+}
+
+// helper to fetch items for an order
+async function getOrderItems(orderId: number) {
+    try {
+        const items = await db.select({
+            name: ItemsTable.name,
+            amount: orderItemsTable.amount,
+            price: ItemsTable.price,
+        })
+        .from(orderItemsTable)
+        .leftJoin(ItemsTable, eq(ItemsTable.id, orderItemsTable.itemId))
+        .where(eq(orderItemsTable.orderId, orderId));
+
+        return items;
+    } catch (e) {
+        console.error('Failed to fetch order items for websocket message', e);
+        return [];
+    }
+}
 
 export default order;
 

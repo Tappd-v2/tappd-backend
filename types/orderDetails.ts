@@ -6,7 +6,7 @@ export class OrderDetails {
     customerName: string | null = null;
     userId: string | null = null;
     createdAt: Date | null = null;
-    tableId: string | null = null;
+    table: { id: string | null; name: string | null } | null = null;
     locationId: string | null = null;
     remarks: string | null = null;
     orderItems = []; 
@@ -27,10 +27,10 @@ export class OrderDetails {
         this.paymentId = null;
         this.totalPrice = null;
         this.receiptUrl = null;
-    this.customerName = null;
+        this.customerName = null;
         this.userId = null;
         this.createdAt = null;
-        this.tableId = null;
+        this.table = null;
         this.remarks = null;
         this.orderItems = [];
     }
