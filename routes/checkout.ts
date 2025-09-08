@@ -1,6 +1,8 @@
-
 import { Hono } from 'hono'
 import Stripe from 'stripe'
+import { db } from '../db'
+import { items as itemsTable } from '../db/schema/items'
+import { eq } from 'drizzle-orm'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '')
 
@@ -26,6 +28,23 @@ checkout.post('/', async (c) => {
             },
             quantity: item.quantity,
         }))
+
+        // verify items availability (if items include id)
+        const itemIds = (items || []).map((it: any) => it && it.id).filter((id: any) => typeof id !== 'undefined')
+        if (itemIds.length > 0) {
+            for (const itemId of itemIds) {
+                const rows = await db.select().from(itemsTable).where(eq(itemsTable.id, itemId))
+                if (!rows || rows.length === 0) {
+                    console.log('Item not found for id:', itemId);
+                    return c.json({ error: 'One or more items not found' }, 400)
+                }
+                const dbItem = rows[0] as any
+                if (dbItem.available === false) {
+                    console.log('Item not available:', dbItem);
+                    return c.json({ error: 'De volgende item(s) is/zijn niet meer beschikbaar: ' + dbItem.name + ". Gelieve ze te verwijderen / vervangen." }, 400)
+                }
+            }
+        }
 
         try {
             const session = await stripe.checkout.sessions.create({
