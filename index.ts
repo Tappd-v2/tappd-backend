@@ -92,6 +92,8 @@ export default {
           try { 
             subscribe('orders', ws);
             subscribe(`orders:${data.locationId}`, ws);
+            subscribe('calls', ws);
+            subscribe(`calls:${data.locationId}`, ws);
           } catch (e) { /* ignore subscription errors */ }
 
           try { ws.subscribe(data.locationId); } catch (e) { /* ignore if unsupported */ }
