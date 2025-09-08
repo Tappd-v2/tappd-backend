@@ -63,7 +63,9 @@ order.post('/save', async (c) => {
             const createdItems = await getOrderItems(created.id);
             const createdWithTable = { ...created, table: createdTable, items: createdItems };
 
+            const topicGlobal = 'orders';
             const topicLocation = `orders:${created.locationId}`;
+            publish(topicGlobal, { action: 'created', order: createdWithTable });
             publish(topicLocation, { action: 'created', order: createdWithTable });
 
             // notify websocket clients in the same location about the new order
@@ -170,8 +172,7 @@ order.get('/', async (c) => {
         receiptUrl: orderTable.receiptUrl,
         remarks: orderTable.remarks,
     })
-    .from(orderTable)
-    .leftJoin(tablesTable, eq(tablesTable.id, orderTable.tableId));
+    .from(orderTable);
 
     if (userId) {
         baseQuery.where(eq(orderTable.userId, userId));
@@ -183,25 +184,15 @@ order.get('/', async (c) => {
 
     const orders = await baseQuery.orderBy(orderTable.createdAt);
 
-    // Fetch items for each order and nest table info under `table`
+    // Fetch table and items for each order using helper functions
     const ordersWithItems = await Promise.all(
         orders.map(async (order) => {
-            const items = await db.select({
-                name: ItemsTable.name,
-                amount: orderItemsTable.amount,
-                price: ItemsTable.price,
-            })
-            .from(orderItemsTable)
-            .leftJoin(ItemsTable, eq(ItemsTable.id, orderItemsTable.itemId))
-            .where(eq(orderItemsTable.orderId, order.id));
+            const table = await getTableObject(order.tableId);
+            const items = await getOrderItems(order.id);
 
-            const { tableId, tableName, ...rest } = order as any;
             return {
-                ...rest,
-                table: {
-                    id: tableId,
-                    name: tableName,
-                },
+                ...order,
+                table,
                 items
             };
         })
@@ -258,10 +249,19 @@ order.patch('/:orderId/state', getUserWithPermissions, async (c) => {
         const updatedTable = await getTableObject(updated.tableId);
         const updatedItems = await getOrderItems(updated.id);
         const updatedWithTable = { ...updated, table: updatedTable, items: updatedItems };
-        const topicGlobal2 = 'orders';
-        const topicLocation2 = `orders:${updated.locationId}`;
-        publish(topicGlobal2, { action: 'updated', order: updatedWithTable });
-        publish(topicLocation2, { action: 'updated', order: updatedWithTable });
+        
+        const topicGlobal = 'orders';
+        const topicLocation = `orders:${updated.locationId}`;
+        publish(topicGlobal, { action: 'updated', order: updatedWithTable });
+        publish(topicLocation, { action: 'updated', order: updatedWithTable });
+
+        // notify websocket clients in the same location about the order update
+        try {
+          const locationId = updated.locationId || updated.location || updated.location_id;
+          if (locationId) {
+            notifyLocationClients(locationId, { type: 'order_updated', order: updatedWithTable });
+          }
+        } catch (e) { /* ignore notification errors */ }
 
         return c.json(result[0]);
     } catch (err) {

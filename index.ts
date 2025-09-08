@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { createBunWebSocket } from 'hono/bun';
+import { subscribe, unsubscribe, unsubscribeAll } from './wsManager';
 import tableRouter from './routes/tables'
 import categoryRouter from './routes/categories'
 import itemRouter from './routes/items'
@@ -115,6 +116,12 @@ export default {
             set.add(ws);
           } catch (e) { /* ignore registry errors */ }
 
+          // also subscribe to wsManager topics
+          try { 
+            subscribe('orders', ws);
+            subscribe(`orders:${data.locationId}`, ws);
+          } catch (e) { /* ignore subscription errors */ }
+
           try { ws.subscribe(data.locationId); } catch (e) { /* ignore if unsupported */ }
           try { if (typeof ws.sendText === 'function') ws.sendText(JSON.stringify({ type: 'init_ack', location: data.locationId })); } catch (e) { /* ignore send errors */ }
         }
@@ -137,6 +144,11 @@ export default {
           }
         } catch (e) { /* ignore */ }
       }
+
+      // unsubscribe from wsManager topics
+      try {
+        unsubscribeAll(ws);
+      } catch (e) { /* ignore */ }
 
       if (loc && typeof ws.unsubscribe === 'function') {
         try { ws.unsubscribe(loc); } catch (e) { /* ignore */ }
